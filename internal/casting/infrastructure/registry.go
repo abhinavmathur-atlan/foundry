@@ -4,9 +4,12 @@ import (
 	"log/slog"
 
 	"github.com/signoz/foundry/api/v1alpha1"
+	"github.com/signoz/foundry/internal/casting/infrastructure/ecsec2terraformcasting"
+	awsconvention "github.com/signoz/foundry/internal/convention/aws"
 	foundryerrors "github.com/signoz/foundry/internal/errors"
 	infrastructuremolding "github.com/signoz/foundry/internal/molding/infrastructure"
 	"github.com/signoz/foundry/internal/tooler"
+	"github.com/signoz/foundry/internal/tooler/terraformtooler"
 )
 
 type CastingItem struct {
@@ -23,7 +26,17 @@ type Registry struct {
 
 func NewRegistry(logger *slog.Logger) *Registry {
 	return &Registry{
-		castings: map[v1alpha1.TypeDeployment]CastingItem{},
+		castings: map[v1alpha1.TypeDeployment]CastingItem{
+			{
+				Platform: v1alpha1.PlatformECS,
+				Mode:     v1alpha1.ModeEC2,
+				Flavor:   v1alpha1.FlavorTerraform,
+			}: {
+				Casting: ecsec2terraformcasting.New(logger),
+				Toolers: []tooler.Tooler{terraformtooler.New()},
+				Deriver: awsconvention.Resources,
+			},
+		},
 	}
 }
 

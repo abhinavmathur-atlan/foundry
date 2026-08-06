@@ -1,0 +1,293 @@
+apiVersion: v1alpha1
+kind: Infrastructure
+metadata:
+  name: foundry
+spec:
+  deployment:
+    flavor: terraform
+    mode: ec2
+    platform: ecs
+  patches:
+  - operations:
+    - op: replace
+      path: /variable/aws_region/default
+      value: us-east-1
+    target: infrastructure/variables.tf.json
+    type: jsonpatch
+  resource:
+    spec:
+      cluster: {}
+      config:
+        data:
+          resource.yaml: |
+            networking:
+              networkCIDR: 10.0.0.0/16
+              subnets:
+                private-a:
+                  type: private
+                  zone: us-east-1a
+                  cidr: 10.0.0.0/19
+                public-a:
+                  type: public
+                  zone: us-east-1a
+                  cidr: 10.0.96.0/22
+            instanceGroups:
+              persistent:
+                minSize: 3
+                maxSize: 3
+                machineType: t3.medium
+                dataVolume:
+                  size: 5
+              ephemeral:
+                machineType: t3.small
+    status:
+      config:
+        data:
+          resource.yaml: |
+            instanceGroups:
+              ephemeral:
+                machineType: t3.small
+                maxSize: 1
+                minSize: 1
+                rootVolume:
+                  size: 30
+                  type: gp3
+                storage: ephemeral
+              persistent:
+                dataVolume:
+                  size: 5
+                  type: gp3
+                machineType: t3.medium
+                maxSize: 3
+                minSize: 3
+                rootVolume:
+                  size: 30
+                  type: gp3
+                storage: persistent
+            networking:
+              networkCIDR: 10.0.0.0/16
+              subnets:
+                private-a:
+                  cidr: 10.0.0.0/19
+                  type: private
+                  zone: us-east-1a
+                public-a:
+                  cidr: 10.0.96.0/22
+                  type: public
+                  zone: us-east-1a
+            resources:
+              cluster:
+                name: foundry-cls
+                tags:
+                  Name: foundry-cls
+                  foundry.signoz.io/kind: Infrastructure
+                  foundry.signoz.io/managed-by: foundry
+                  foundry.signoz.io/name: foundry
+                  foundry.signoz.io/owner: owned
+              ignoredTags:
+              - foundry.signoz.io/identities
+              instanceGroups:
+                ephemeral:
+                  autoscalingGroup:
+                    name: foundry-asg-ephemeral
+                    tags:
+                      Name: foundry-asg-ephemeral
+                      foundry.signoz.io/kind: Infrastructure
+                      foundry.signoz.io/managed-by: foundry
+                      foundry.signoz.io/name: foundry
+                      foundry.signoz.io/owner: owned
+                      foundry.signoz.io/storage: ephemeral
+                  launchTemplate:
+                    name: foundry-lt-ephemeral
+                    tags:
+                      Name: foundry-lt-ephemeral
+                      foundry.signoz.io/kind: Infrastructure
+                      foundry.signoz.io/managed-by: foundry
+                      foundry.signoz.io/name: foundry
+                      foundry.signoz.io/owner: owned
+                      foundry.signoz.io/storage: ephemeral
+                  selector:
+                    foundry.signoz.io/name: foundry
+                    foundry.signoz.io/storage: ephemeral
+                  storage: ephemeral
+                  subnets:
+                  - private-a
+                persistent:
+                  nodes:
+                  - name: foundry-node-persistent-0
+                    ordinal: 0
+                    subnet: private-a
+                    tags:
+                      Name: foundry-node-persistent-0
+                      foundry.signoz.io/kind: Infrastructure
+                      foundry.signoz.io/managed-by: foundry
+                      foundry.signoz.io/name: foundry
+                      foundry.signoz.io/owner: owned
+                      foundry.signoz.io/storage: persistent
+                    volume:
+                      name: foundry-vol-persistent-0
+                      tags:
+                        Name: foundry-vol-persistent-0
+                        foundry.signoz.io/kind: Infrastructure
+                        foundry.signoz.io/managed-by: foundry
+                        foundry.signoz.io/name: foundry
+                        foundry.signoz.io/owner: owned
+                        foundry.signoz.io/storage: persistent
+                  - name: foundry-node-persistent-1
+                    ordinal: 1
+                    subnet: private-a
+                    tags:
+                      Name: foundry-node-persistent-1
+                      foundry.signoz.io/kind: Infrastructure
+                      foundry.signoz.io/managed-by: foundry
+                      foundry.signoz.io/name: foundry
+                      foundry.signoz.io/owner: owned
+                      foundry.signoz.io/storage: persistent
+                    volume:
+                      name: foundry-vol-persistent-1
+                      tags:
+                        Name: foundry-vol-persistent-1
+                        foundry.signoz.io/kind: Infrastructure
+                        foundry.signoz.io/managed-by: foundry
+                        foundry.signoz.io/name: foundry
+                        foundry.signoz.io/owner: owned
+                        foundry.signoz.io/storage: persistent
+                  - name: foundry-node-persistent-2
+                    ordinal: 2
+                    subnet: private-a
+                    tags:
+                      Name: foundry-node-persistent-2
+                      foundry.signoz.io/kind: Infrastructure
+                      foundry.signoz.io/managed-by: foundry
+                      foundry.signoz.io/name: foundry
+                      foundry.signoz.io/owner: owned
+                      foundry.signoz.io/storage: persistent
+                    volume:
+                      name: foundry-vol-persistent-2
+                      tags:
+                        Name: foundry-vol-persistent-2
+                        foundry.signoz.io/kind: Infrastructure
+                        foundry.signoz.io/managed-by: foundry
+                        foundry.signoz.io/name: foundry
+                        foundry.signoz.io/owner: owned
+                        foundry.signoz.io/storage: persistent
+                  selector:
+                    foundry.signoz.io/name: foundry
+                    foundry.signoz.io/storage: persistent
+                  storage: persistent
+                  subnets:
+                  - private-a
+              instanceProfile:
+                name: foundry-prf-node
+                tags:
+                  Name: foundry-prf-node
+                  foundry.signoz.io/kind: Infrastructure
+                  foundry.signoz.io/managed-by: foundry
+                  foundry.signoz.io/name: foundry
+                  foundry.signoz.io/owner: owned
+              internetGateway:
+                name: foundry-igw
+                tags:
+                  Name: foundry-igw
+                  foundry.signoz.io/kind: Infrastructure
+                  foundry.signoz.io/managed-by: foundry
+                  foundry.signoz.io/name: foundry
+                  foundry.signoz.io/owner: owned
+              natGateways:
+                private-a:
+                  address:
+                    name: foundry-eip-private-a
+                    tags:
+                      Name: foundry-eip-private-a
+                      foundry.signoz.io/kind: Infrastructure
+                      foundry.signoz.io/managed-by: foundry
+                      foundry.signoz.io/name: foundry
+                      foundry.signoz.io/owner: owned
+                  name: foundry-nat-private-a
+                  subnet: public-a
+                  tags:
+                    Name: foundry-nat-private-a
+                    foundry.signoz.io/kind: Infrastructure
+                    foundry.signoz.io/managed-by: foundry
+                    foundry.signoz.io/name: foundry
+                    foundry.signoz.io/owner: owned
+              roles:
+                node:
+                  name: foundry-iam-node
+                  tags:
+                    Name: foundry-iam-node
+                    foundry.signoz.io/kind: Infrastructure
+                    foundry.signoz.io/managed-by: foundry
+                    foundry.signoz.io/name: foundry
+                    foundry.signoz.io/owner: owned
+              routeTables:
+                private-a:
+                  name: foundry-rt-private-a
+                  tags:
+                    Name: foundry-rt-private-a
+                    foundry.signoz.io/kind: Infrastructure
+                    foundry.signoz.io/managed-by: foundry
+                    foundry.signoz.io/name: foundry
+                    foundry.signoz.io/owner: owned
+                public-a:
+                  name: foundry-rt-public-a
+                  tags:
+                    Name: foundry-rt-public-a
+                    foundry.signoz.io/kind: Infrastructure
+                    foundry.signoz.io/managed-by: foundry
+                    foundry.signoz.io/name: foundry
+                    foundry.signoz.io/owner: owned
+              securityGroup:
+                name: foundry-sg-task
+                tags:
+                  Name: foundry-sg-task
+                  foundry.signoz.io/kind: Infrastructure
+                  foundry.signoz.io/managed-by: foundry
+                  foundry.signoz.io/name: foundry
+                  foundry.signoz.io/owner: owned
+              securityGroupRules:
+                all-outbound:
+                  name: foundry-sg-task-all-outbound
+                  tags:
+                    Name: foundry-sg-task-all-outbound
+                    foundry.signoz.io/kind: Infrastructure
+                    foundry.signoz.io/managed-by: foundry
+                    foundry.signoz.io/name: foundry
+                    foundry.signoz.io/owner: owned
+                intra-cluster:
+                  name: foundry-sg-task-intra-cluster
+                  tags:
+                    Name: foundry-sg-task-intra-cluster
+                    foundry.signoz.io/kind: Infrastructure
+                    foundry.signoz.io/managed-by: foundry
+                    foundry.signoz.io/name: foundry
+                    foundry.signoz.io/owner: owned
+              subnets:
+                private-a:
+                  name: foundry-sub-private-a
+                  public: false
+                  tags:
+                    Name: foundry-sub-private-a
+                    foundry.signoz.io/kind: Infrastructure
+                    foundry.signoz.io/managed-by: foundry
+                    foundry.signoz.io/name: foundry
+                    foundry.signoz.io/owner: owned
+                    foundry.signoz.io/subnet-type: private
+                public-a:
+                  name: foundry-sub-public-a
+                  public: true
+                  tags:
+                    Name: foundry-sub-public-a
+                    foundry.signoz.io/kind: Infrastructure
+                    foundry.signoz.io/managed-by: foundry
+                    foundry.signoz.io/name: foundry
+                    foundry.signoz.io/owner: owned
+                    foundry.signoz.io/subnet-type: public
+              vpc:
+                name: foundry-vpc
+                tags:
+                  Name: foundry-vpc
+                  foundry.signoz.io/kind: Infrastructure
+                  foundry.signoz.io/managed-by: foundry
+                  foundry.signoz.io/name: foundry
+                  foundry.signoz.io/owner: owned
